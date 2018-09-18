@@ -58,7 +58,7 @@ def login():
     login_user = users.find_one({'name': name})
 
     if login_user:
-        if bcrypt.hashpw(password.encode('utf-8'), login_user['password'].encode('utf-8')) == login_user['password'].encode('utf-8'):
+        if bcrypt.hashpw(password.encode("utf_8"), login_user['password']) == login_user['password']:
             session['username'] = name
             return "all good"
 
