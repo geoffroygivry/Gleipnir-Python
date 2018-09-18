@@ -1,0 +1,8 @@
+version: '3'
+services:
+  gleipnir:
+    build: .
+    volumes: # For dev purpose
+     - .:/code # For Dev Purpose: Allows to reload and display the fresh new code.
+    ports:
+     - "5000:5000"
