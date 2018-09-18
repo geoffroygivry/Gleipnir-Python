@@ -4,11 +4,12 @@
 import datetime
 import hashlib
 import json
+from controller import gleipnir
 
 __author__ = "Geoffroy Givry"
 
 
-class Blockchain:
+class Blockchain(gleipnir.Gleipnir):
 
     def __init__(self):
         self.chain = []
@@ -17,7 +18,7 @@ class Blockchain:
 
     def create_block(self, data, nonce, previous_hash):
         block = {'index': len(self.chain) + 1,
-                 'timestamp': str(datetime.datetime.now()),
+                 'timestamp': str(datetime.datetime.utcnow().isoformat()),
                  'data': data,
                  'nonce': nonce,
                  'previous_hash': previous_hash}
