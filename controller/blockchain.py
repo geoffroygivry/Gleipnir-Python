@@ -1,6 +1,7 @@
 
 
 # Importing the libraries
+import os
 import datetime
 import hashlib
 import json
@@ -12,34 +13,52 @@ __author__ = "Geoffroy Givry"
 class Blockchain(gleipnir.Gleipnir):
 
     def __init__(self):
+        super().__init__()
         self.chain = []
-        self.create_block("Blockchain created by: {}".format(__author__),
-                          nonce=1, previous_hash='0')
+        self._set_blockchain_title()
+        if self.file is not None:
+            self.create_block("Blockchain created by: {}".format(__author__),
+                              nonce=1, current_hash="00000000000000000", previous_hash='0', title=self.file)
+        else:
+            self.create_block("Blockchain created by: {}".format(__author__),
+                              nonce=1, current_hash="00000000000000000", previous_hash='0')
 
-    def create_block(self, data, nonce, previous_hash):
-        block = {'index': len(self.chain) + 1,
-                 'timestamp': str(datetime.datetime.utcnow().isoformat()),
-                 'data': data,
-                 'nonce': nonce,
-                 'previous_hash': previous_hash}
+    def create_block(self, data, nonce, current_hash, previous_hash, title=None):
+        chain_index = len(self.chain) + 1
+        if title is not None:
+            block = {'index': chain_index,
+                     'block_title': "{}_{:04d}".format(os.path.basename(title), chain_index),
+                     'timestamp': str(datetime.datetime.utcnow().isoformat()),
+                     'data': data,
+                     'nonce': nonce,
+                     'hash': current_hash,
+                     'previous_hash': previous_hash}
+        else:
+            block = {'index': chain_index,
+                     'timestamp': str(datetime.datetime.utcnow().isoformat()),
+                     'data': data,
+                     'nonce': nonce,
+                     'hash': current_hash,
+                     'previous_hash': previous_hash}
         self.chain.append(block)
         return block
-
+    
     def get_previous_block(self):
         return self.chain[-1]
 
-    def nonce(self, previous_nonce):
+    def nonce_and_hash(self, previous_nonce):
         new_nonce = 1
+        current_hash = None
         check_nonce = False
         while check_nonce is False:
-            hash_operation = hashlib.sha256(str(new_nonce**2 -
+            current_hash = hashlib.sha256(str(new_nonce**2 -
                                                 previous_nonce**2)
                                             .encode()).hexdigest()
-            if hash_operation[:4] == '0000':
+            if current_hash[:4] == '0000':
                 check_nonce = True
             else:
                 new_nonce += 1
-        return new_nonce
+        return new_nonce, current_hash
 
     def hash(self, block):
         encoded_block = json.dumps(block, sort_keys=True).encode()

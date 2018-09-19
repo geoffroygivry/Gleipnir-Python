@@ -21,12 +21,14 @@ class GleipnirError(Exception):
 
 
 class Gleipnir:
-    def __init__(self):
+    def __init__(self, file_path=None, chunks=None):
         self.db = None
-        self.file = None
-        self.data = None
-        self.chunks = None
+        self.file = file_path
+        self.title = None
+        self.data = self.set_data(self.file)
+        self.chunks = chunks
         self.key = None
+        self._set_blockchain_title()
 
     def __doc__(self):
         return "Class object that allows to split a file into an encrypted " \
@@ -44,6 +46,7 @@ class Gleipnir:
                            self.chunks):
                 yield self.data[0 + n:len(self.data) // self.chunks + n]
         return
+              
 
     def encrypt_block(self, data=None, **kwargs):
         """Method for splitting and encrypting the file into the decentralised
@@ -81,15 +84,15 @@ class Gleipnir:
         self.file = file
 
     def set_data(self, file_path):
-        """This fucntion converts the file into binary data."""
+        """This function converts the file into binary data."""
         if self.file is not None:
             with open(self.file, 'rb') as file:
                 self.data = file.read()
         else:
-            print("No files has been added. Please choose one file.")
-            sys.exit(1)
+            self.data = None
 
     def set_chunks(self, num_of_chunks):
+        """Function that's returns the number of chunks of the file"""
         self.chunks = num_of_chunks
 
     def import_key(self, key_file):
@@ -102,3 +105,11 @@ class Gleipnir:
 
     def set_key(self):
         self.key = get_random_bytes(16)
+        
+    def _set_blockchain_title(self):
+        if self.file is not None:
+            filename, ext = os.path.splitext(os.path.basename(self.file))
+            self.title = filename
+            
+    def get_blockchain_title(self):
+        return self.title
