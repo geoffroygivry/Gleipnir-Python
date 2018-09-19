@@ -4,6 +4,7 @@ import os
 
 
 from base64 import b64encode, b64decode
+import hashlib
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
@@ -27,7 +28,8 @@ class Gleipnir:
         self.title = None
         self.data = self.set_data(self.file)
         self.chunks = chunks
-        self.key = None
+        self.key = self.set_key()
+        # self.key = hashlib.sha256(key.encode()).digest()
         self._set_blockchain_title()
 
     def __doc__(self):
@@ -46,7 +48,6 @@ class Gleipnir:
                            self.chunks):
                 yield self.data[0 + n:len(self.data) // self.chunks + n]
         return
-              
 
     def encrypt_block(self, data=None, **kwargs):
         """Method for splitting and encrypting the file into the decentralised
@@ -105,11 +106,11 @@ class Gleipnir:
 
     def set_key(self):
         self.key = get_random_bytes(16)
-        
+
     def _set_blockchain_title(self):
         if self.file is not None:
             filename, ext = os.path.splitext(os.path.basename(self.file))
             self.title = filename
-            
+
     def get_blockchain_title(self):
         return self.title

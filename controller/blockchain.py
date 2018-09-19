@@ -12,22 +12,32 @@ __author__ = "Geoffroy Givry"
 
 class Blockchain(gleipnir.Gleipnir):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.chain = []
         self._set_blockchain_title()
+        self.set_data(self.file)
+        self.set_key()
+        self._set_blockchain_title()
+
         if self.file is not None:
             self.create_block("Blockchain created by: {}".format(__author__),
-                              nonce=1, current_hash="00000000000000000", previous_hash='0', title=self.file)
+                              nonce=1,
+                              current_hash="00000000000000000",
+                              previous_hash='0',
+                              title=self.file)
         else:
             self.create_block("Blockchain created by: {}".format(__author__),
-                              nonce=1, current_hash="00000000000000000", previous_hash='0')
+                              nonce=1,
+                              current_hash="00000000000000000",
+                              previous_hash='0')
 
     def create_block(self, data, nonce, current_hash, previous_hash, title=None):
         chain_index = len(self.chain) + 1
         if title is not None:
             block = {'index': chain_index,
-                     'block_title': "{}_{:04d}".format(os.path.basename(title), chain_index),
+                     'block_title': "{}_{:04d}".format(os.path.basename(title),
+                                                       chain_index),
                      'timestamp': str(datetime.datetime.utcnow().isoformat()),
                      'data': data,
                      'nonce': nonce,
@@ -42,7 +52,7 @@ class Blockchain(gleipnir.Gleipnir):
                      'previous_hash': previous_hash}
         self.chain.append(block)
         return block
-    
+
     def get_previous_block(self):
         return self.chain[-1]
 
@@ -52,8 +62,8 @@ class Blockchain(gleipnir.Gleipnir):
         check_nonce = False
         while check_nonce is False:
             current_hash = hashlib.sha256(str(new_nonce**2 -
-                                                previous_nonce**2)
-                                            .encode()).hexdigest()
+                                              previous_nonce**2)
+                                          .encode()).hexdigest()
             if current_hash[:4] == '0000':
                 check_nonce = True
             else:
