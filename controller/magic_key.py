@@ -10,4 +10,4 @@ def generate_magic_key(file):
     ae.encrypt_data(magic_key, file)
     decrypted_magic_key = ae.decrypt_data(file)
     if decrypted_magic_key == magic_key:
-        print "yes!"
+        print("yes!")
