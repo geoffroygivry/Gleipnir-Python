@@ -22,13 +22,13 @@ class GleipnirError(Exception):
 
 
 class Gleipnir:
-    def __init__(self, file_path=None, chunks=None):
+    def __init__(self, magic_key, file_path=None, chunks=None):
         self.db = None
         self.file = file_path
         self.title = None
         self.data = self.set_data(self.file)
         self.chunks = chunks
-        self.key = self.set_key()
+        self.key = magic_key
         # self.key = hashlib.sha256(key.encode()).digest()
         self._set_blockchain_title()
 
@@ -95,17 +95,6 @@ class Gleipnir:
     def set_chunks(self, num_of_chunks):
         """Function that's returns the number of chunks of the file"""
         self.chunks = num_of_chunks
-
-    def import_key(self, key_file):
-        with open(key_file, "rb") as key:
-            self.key = key
-
-    def export_key(self, key_file):
-        with open(key_file, "wb") as key:
-            key.write(self.key)
-
-    def set_key(self):
-        self.key = get_random_bytes(16)
 
     def _set_blockchain_title(self):
         if self.file is not None:

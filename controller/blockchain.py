@@ -1,4 +1,4 @@
-
+# Copyright (c) 2018 Geoffroy Givry
 
 # Importing the libraries
 import os
@@ -17,7 +17,6 @@ class Blockchain(gleipnir.Gleipnir):
         self.chain = []
         self._set_blockchain_title()
         self.set_data(self.file)
-        self.set_key()
         self._set_blockchain_title()
 
         if self.file is not None:
