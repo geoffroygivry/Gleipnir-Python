@@ -12,8 +12,8 @@ __author__ = "Geoffroy Givry"
 
 class Blockchain(gleipnir.Gleipnir):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.chain = []
         self._set_blockchain_title()
         self.set_data(self.file)

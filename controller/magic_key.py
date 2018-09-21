@@ -4,10 +4,18 @@ from controller import Asymmetric_encryption as ae
 from Crypto.Random import get_random_bytes
 
 
-def generate_magic_key(file):
-    ae.generate_keys()
+def generate_magic_keys(magic_key_file, private_key=None, public_key=None):
     magic_key = get_random_bytes(16)
-    ae.encrypt_data(magic_key, file)
-    decrypted_magic_key = ae.decrypt_data(file)
-    if decrypted_magic_key == magic_key:
-        print("yes!")
+    
+    if private_key is not None and public_key is not None:
+        ae.generate_keys(private_key, public_key)
+        ae.encrypt_data(magic_key, magic_key_file, public_key)
+
+    else:
+        ae.generate_keys()
+        ae.encrypt_data(magic_key, magic_key_file)
+
+
+def get_magic_key(magic_key_file, private_key):
+    magic_key = ae.decrypt_data(magic_key_file, private_key)
+    return magic_key
