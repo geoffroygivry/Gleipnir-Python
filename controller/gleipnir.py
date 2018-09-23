@@ -74,6 +74,34 @@ class Gleipnir:
             print("Sorry you must enter some data.")
             sys.exit(1)
 
+    def decrypt_blocks(self, db_collection):
+        """Method for decrypting the blockchain into the original file."""
+        full_bin_data = bytearray()
+        for n in sorted(list(db_collection.find()),
+                        key=lambda x: x['block_title'].split('_')[-1]):
+            if isinstance(n['data'], dict):
+                json_input = n['data']
+                try:
+                    b64 = json_input
+                    json_k = ['nonce', 'header', 'ciphertext', 'tag']
+                    jv = {k: b64decode(b64[k]) for k in json_k}
+                    cipher = AES.new(self.key, AES.MODE_EAX, nonce=jv['nonce'])
+                    cipher.update(jv['header'])
+                    plaintext = cipher.decrypt_and_verify(jv['ciphertext'],
+                                                          jv['tag'])
+                    full_bin_data.extend(plaintext)
+                except ValueError:
+                    print("Incorrect decryption")
+        return bytes(full_bin_data)
+
+    def convert_blocks_to_file(self, db_collection, file_name=None):
+        if not file_name:
+            file_name = self.file
+        full_bin_data = self.decrypt_blocks(db_collection)
+        with open(file_name, 'wb') as decrypted_file:
+            decrypted_file.write(full_bin_data)
+        print("the file {} has been decrypted!".format(file_name))
+
     def set_db(self, db):
         """Returns the database object inside the Gleipnir class"""
         self.db = db
