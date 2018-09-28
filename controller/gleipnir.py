@@ -77,9 +77,9 @@ class Gleipnir:
         """Method for decrypting the blockchain into the original file."""
         full_bin_data = bytearray()
         for n in sorted(list(db_collection.find()),
-                        key=lambda x: x['input']['block_title'].split('_')[-1]): #TODO : change the hard coded keys of the blockchain dict model andnf put it in a centralised module.
-            if isinstance(n['input']['data'], dict): # TODO : same has previous.
-                json_input = n['input']['data'] # TODO: same as previous
+                        key=lambda x: x['input']['block_title'].split('_')[-1]):  # TODO : change the hard coded keys of the blockchain dict model andnf put it in a centralised module.
+            if isinstance(n['input']['data'], dict):  # TODO : same has previous.
+                json_input = n['input']['data']  # TODO: same as previous
                 try:
                     b64 = json_input
                     json_k = ['nonce', 'header', 'ciphertext', 'tag']
@@ -89,8 +89,8 @@ class Gleipnir:
                     plaintext = cipher.decrypt_and_verify(jv['ciphertext'],
                                                           jv['tag'])
                     full_bin_data.extend(plaintext)
-                except ValueError:
-                    print("Incorrect decryption")
+                except ValueError as e:
+                    print("Incorrect decryption", e)
         return bytes(full_bin_data)
 
     def convert_blocks_to_file(self, db_collection, file_name=None):
