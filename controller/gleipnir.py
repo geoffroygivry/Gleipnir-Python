@@ -20,14 +20,13 @@ class GleipnirError(Exception):
 
 
 class Gleipnir:
-    def __init__(self, magic_key, file_path=None, chunks=None):
-        self.db = None
+    def __init__(self, magic_key, db=None, file_path=None, chunks=None):
+        self.db = db
         self.file = file_path
         self.title = None
         self.data = self.set_data(self.file)
         self.chunks = chunks
         self.key = magic_key
-        # self.key = hashlib.sha256(key.encode()).digest()
         self._set_blockchain_title()
 
     def __doc__(self):
@@ -78,9 +77,9 @@ class Gleipnir:
         """Method for decrypting the blockchain into the original file."""
         full_bin_data = bytearray()
         for n in sorted(list(db_collection.find()),
-                        key=lambda x: x['block_title'].split('_')[-1]):
-            if isinstance(n['data'], dict):
-                json_input = n['data']
+                        key=lambda x: x['input']['block_title'].split('_')[-1]): #TODO : change the hard coded keys of the blockchain dict model andnf put it in a centralised module.
+            if isinstance(n['input']['data'], dict): # TODO : same has previous.
+                json_input = n['input']['data'] # TODO: same as previous
                 try:
                     b64 = json_input
                     json_k = ['nonce', 'header', 'ciphertext', 'tag']

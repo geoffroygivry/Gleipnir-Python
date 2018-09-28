@@ -6,6 +6,8 @@ import datetime
 import hashlib
 import json
 from controller import gleipnir
+import pymongo
+from controller import gleipnir_utils as gu
 
 __author__ = "Geoffroy Givry"
 
@@ -14,48 +16,56 @@ class Blockchain(gleipnir.Gleipnir):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.chain = []
+        self.chain = [x for x in self.db.BCMain.find().sort('_id',pymongo.DESCENDING)]
+        self.previous_block = [x for x in self.db.BCMain.find().sort('_id',pymongo.DESCENDING).limit(1)][0]
         self._set_blockchain_title()
         self.set_data(self.file)
         self._set_blockchain_title()
 
-        if self.file is not None:
-            self.create_block("Blockchain created by: {}".format(__author__),
-                              nonce=1,
-                              current_hash="00000000000000000",
-                              previous_hash='0',
-                              title=self.file)
-        else:
-            self.create_block("Blockchain created by: {}".format(__author__),
-                              nonce=1,
-                              current_hash="00000000000000000",
-                              previous_hash='0')
-
-    def create_block(self, data, nonce, current_hash, previous_hash, title=None):
-        chain_index = len(self.chain) + 1
+    def create_block(self, data, previous_txid, title=None):
+        prev_block = self.get_previous_block()
+        chain_index = prev_block['input']['index'] + 1
         if title is not None:
-            block = {'index': chain_index,
-                     'block_title': "{}_{:04d}".format(os.path.basename(title),
+            block = {'input':  {
+                        'index': chain_index,
+                        'block_title': "{}_{:04d}".format(os.path.basename(title),
                                                        chain_index),
-                     'timestamp': str(datetime.datetime.utcnow().isoformat()),
-                     'data': data,
-                     'nonce': nonce,
-                     'hash': current_hash,
-                     'previous_hash': previous_hash}
+                         'timestamp': str(datetime.datetime.utcnow().isoformat()),
+                         'data': data,
+                         'previous_txid': previous_txid
+                                },
+                     'metadata' : []
+                    }
+                    
         else:
-            block = {'index': chain_index,
-                     'timestamp': str(datetime.datetime.utcnow().isoformat()),
-                     'data': data,
-                     'nonce': nonce,
-                     'hash': current_hash,
-                     'previous_hash': previous_hash}
-        self.chain.append(block)
+            block = {'input':  {
+                        'index': chain_index,
+                        'block_title': "Gleipnir Untitled Block",
+                         'timestamp': str(datetime.datetime.utcnow().isoformat()),
+                         'data': data,
+                         'previous_txid': previous_txid
+                                },
+                     'metadata' : []
+                    }
+            
+        nonce = 1
+        check_nonce = False
+        while check_nonce is False:
+            block['input']['nonce'] = nonce
+            block_hash = hashlib.sha256(str(self.format_dict_to_block(block)).encode()).hexdigest()
+            if block_hash[:4] == '0000':
+                block["transaction_id"] = block_hash
+                check_nonce = True
+            else:
+                nonce += 1
+            
         return block
 
     def get_previous_block(self):
-        return self.chain[-1]
+        return self.previous_block
 
     def nonce_and_hash(self, previous_nonce):
+        """Depreciated method."""
         new_nonce = 1
         current_hash = None
         check_nonce = False
@@ -70,9 +80,18 @@ class Blockchain(gleipnir.Gleipnir):
         return new_nonce, current_hash
 
     def hash(self, block):
-        encoded_block = json.dumps(block, sort_keys=True).encode()
+        formated_block = gu.JSONEncoder().encode(block)
+        encoded_block = json.dumps(formated_block, sort_keys=True).encode()
         return hashlib.sha256(encoded_block).hexdigest()
-
+    
+    def format_dict_to_block(self, block):
+        return json.dumps(block, sort_keys=True)
+    
+    def check_prev_block_hash(self, block, previous_block):
+        comp_block = {"input": previous_block["input"], "metadata": previous_block["metadata"]}
+        check_hash = hashlib.sha256(str(self.format_dict_to_block(comp_block)).encode()).hexdigest() == block["input"]["previous_txid"]
+        return check_hash
+    
     def is_chain_valid(self, chain):
         previous_block = chain[0]
         block_index = 1
